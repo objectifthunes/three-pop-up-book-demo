@@ -3,6 +3,7 @@ import { ArrowDownToLine, Code2, PlayCircle, Sparkles } from 'lucide-react'
 import { CodeBlock } from '@/components/CodeBlock'
 import { Eyebrow } from '@/components/Eyebrow'
 import { GROUPS, exportsByGroup, LIB_VERSION, NPM_URL } from '@/components/exports'
+import { LivePopUp } from '@/components/live/examples'
 
 const INSTALL = `pnpm add @objectifthunes/three-pop-up-book @objectifthunes/three-book three`
 
@@ -41,10 +42,14 @@ export default async function HomePage() {
           paper as it curls. Every export documented, with working examples.
         </p>
         <div className="landing__hero-actions">
-          <Link className="landing__cta landing__cta--primary" href="/full/editor/">Open the live editor ↗</Link>
-          <Link className="landing__cta" href="/start/quick-start/">Quick start</Link>
+          <Link className="landing__cta landing__cta--primary" href="/start/quick-start/">Quick start ↗</Link>
+          <Link className="landing__cta" href="/elements/pop-up-element/">PopUpElement</Link>
           <a className="landing__cta" href={NPM_URL} target="_blank" rel="noopener noreferrer">npm</a>
         </div>
+      </section>
+
+      <section className="landing__block">
+        <LivePopUp />
       </section>
 
       <section>
@@ -78,15 +83,15 @@ export default async function HomePage() {
         <div className="landing__skill-header">
           <div>
             <Eyebrow icon={<PlayCircle size={12} strokeWidth={1.75} />}>SEE IT MOVE</Eyebrow>
-            <h2 className="landing__skill-title">Two live demos, no install.</h2>
+            <h2 className="landing__skill-title">Live, all the way down.</h2>
           </div>
-          <Link className="landing__skill-cta" href="/full/editor/">Open editor</Link>
+          <Link className="landing__skill-cta" href="/scenes/pop-up-scene/">PopUpScene</Link>
         </div>
         <p style={{ color: 'var(--ot-text-secondary)', fontSize: 14 }}>
-          The <strong>Interactive editor</strong> is the full three-book studio with an extra <strong>Pop-Ups</strong>{' '}
-          tab — add cubes, trees, cones and more, drag them around the page, scale and rotate, even load a GLTF
-          model. The <strong>Minimal pop-up</strong> shows the bare mechanism: a couple of shapes that rise as the
-          page settles and fold flat as it lifts.
+          Every page on this site embeds the feature it documents as a real, interactive example — shapes rise off
+          the page on <strong>PopUpScene</strong>, span the gutter on <strong>PopUpSpreadScene</strong>, and bounce
+          or snap on the <strong>Animation</strong> page. Each runs inline on its own contained{' '}
+          <code>WebGLRenderer</code>, composed from the published package — no separate app, no full-screen detour.
         </p>
         <ul className="landing__skill-bullets">
           <li>Anchor any THREE.Object3D to a page by (x, z)</li>

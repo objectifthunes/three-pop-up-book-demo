@@ -3,8 +3,8 @@ import { ExportPage } from '@/components/ExportPage'
 import { Source } from '@/components/Source'
 import { Notes } from '@/components/Notes'
 import { PropTable } from '@/components/PropTable'
-import { FullScreenPreview } from '@/components/Preview'
 import { findExport } from '@/components/exports'
+import { LivePopUp } from '@/components/live/examples'
 
 const e = findExport('/start/quick-start/')!
 
@@ -42,6 +42,7 @@ animate()`
 export default async function Page() {
   return (
     <ExportPage group={e.group} title={e.name} lede={e.lede}>
+      <LivePopUp />
       <Source code="pnpm add @objectifthunes/three-pop-up-book @objectifthunes/three-book three" lang="bash" />
       <Source code={CODE} lang="ts" />
       <PropTable
@@ -69,7 +70,6 @@ export default async function Page() {
           <Link href="/scenes/pop-up-scene/">PopUpScene</Link> for managing the pop-ups on a page.
         </p>
       </Notes>
-      <FullScreenPreview href="/full/editor/" illustration={null} />
     </ExportPage>
   )
 }

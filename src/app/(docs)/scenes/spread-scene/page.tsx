@@ -4,6 +4,7 @@ import { Source } from '@/components/Source'
 import { Notes } from '@/components/Notes'
 import { PropTable } from '@/components/PropTable'
 import { findExport } from '@/components/exports'
+import { LivePopUpSpread } from '@/components/live/examples'
 
 const e = findExport('/scenes/spread-scene/')!
 
@@ -32,6 +33,7 @@ spread.dispose()`
 export default async function Page() {
   return (
     <ExportPage group={e.group} title={e.name} lede={e.lede}>
+      <LivePopUpSpread />
       <Source code={CODE} lang="ts" />
       <PropTable
         label="CONSTRUCTOR — new PopUpSpreadScene(options)"

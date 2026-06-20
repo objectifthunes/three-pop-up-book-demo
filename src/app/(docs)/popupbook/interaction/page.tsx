@@ -3,8 +3,8 @@ import { ExportPage } from '@/components/ExportPage'
 import { Source } from '@/components/Source'
 import { Notes } from '@/components/Notes'
 import { PropTable } from '@/components/PropTable'
-import { FullScreenPreview } from '@/components/Preview'
 import { findExport } from '@/components/exports'
+import { LivePopUp } from '@/components/live/examples'
 
 const e = findExport('/popupbook/interaction/')!
 
@@ -39,6 +39,7 @@ popUpBook.unbindInteraction()`
 export default async function Page() {
   return (
     <ExportPage group={e.group} title={e.name} lede={e.lede}>
+      <LivePopUp />
       <Source code={CODE} lang="ts" />
       <PropTable
         label="bindInteraction(options)"
@@ -81,7 +82,6 @@ export default async function Page() {
           standing are candidates, so hidden ones never intercept clicks.
         </p>
       </Notes>
-      <FullScreenPreview href="/full/editor/" illustration={null} />
     </ExportPage>
   )
 }

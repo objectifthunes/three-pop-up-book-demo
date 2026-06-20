@@ -4,6 +4,7 @@ import { Source } from '@/components/Source'
 import { Notes } from '@/components/Notes'
 import { PropTable } from '@/components/PropTable'
 import { findExport } from '@/components/exports'
+import { LivePopUp } from '@/components/live/examples'
 
 const e = findExport('/start/concepts/')!
 
@@ -19,6 +20,7 @@ popUpBook.setScene(back,  new PopUpScene({ pageWidth, pageHeight }))`
 export default async function Page() {
   return (
     <ExportPage group={e.group} title={e.name} lede={e.lede}>
+      <LivePopUp />
       <Notes>
         <p>
           The library is three small pieces stacked on top of a{' '}

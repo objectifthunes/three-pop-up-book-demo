@@ -20,7 +20,6 @@ export type GroupId =
   | 'scenes'
   | 'elements'
   | 'reference'
-  | 'live'
 
 export const GROUPS: { id: GroupId; label: string }[] = [
   { id: 'start',     label: 'Getting started' },
@@ -28,7 +27,6 @@ export const GROUPS: { id: GroupId; label: string }[] = [
   { id: 'scenes',    label: 'Scenes'          },
   { id: 'elements',  label: 'Elements'        },
   { id: 'reference', label: 'Reference'       },
-  { id: 'live',      label: 'Live demos'      },
 ]
 
 export const EXPORTS: ExportEntry[] = [
@@ -50,10 +48,6 @@ export const EXPORTS: ExportEntry[] = [
 
   // Reference
   { slug: 'types', name: 'Types index', group: 'reference', href: '/reference/types/', lede: 'PopUpBookOptions, PopUpSceneOptions, PopUpElementOptions, PopUpInteractionOptions at a glance.', badge: 'TYPE' },
-
-  // Live demos
-  { slug: 'editor',  name: 'Interactive editor', group: 'live', href: '/live/editor/', lede: 'The full studio: the three-book editor plus a Pop-Ups tab to add, place and animate 3D objects.', badge: 'FULL-SCREEN' },
-  { slug: 'minimal', name: 'Minimal pop-up', group: 'live', href: '/live/minimal/', lede: 'The smallest setup — a book with a couple of shapes that rise as the page settles.', badge: 'FULL-SCREEN' },
 ]
 
 export function groupOf(id: GroupId) {
