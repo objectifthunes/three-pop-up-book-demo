@@ -30,10 +30,43 @@ spread.resize(5, 7)
 
 spread.dispose()`
 
+const WITH_BOOK = `import { PopUpScene } from '@objectifthunes/three-pop-up-book'
+
+// PopUpBook follows the pages by positioning a PopUpScene's elements against ONE
+// paper. To put pop-ups across a facing pair, register one scene PER page: the
+// back side of the left paper, and the front side of the right one.
+const off = popUpBook.contentPageOffset
+
+const leftPage = new PopUpScene({ pageWidth: 2, pageHeight: 3 })
+popUpBook.setScene(off + 1, leftPage)      // back side of the left paper
+leftPage.addPopUp({ object: makeShape('star'), x: 1.4, z: 0.8 })
+
+const rightPage = new PopUpScene({ pageWidth: 2, pageHeight: 3 })
+popUpBook.setScene(off + 2, rightPage)     // front side of the right paper
+rightPage.addPopUp({ object: makeShape('cone'), x: 1.4, z: 0.9 })
+
+// Open to that content↔content spread (one page past the covers).
+book.startAutoTurning(0, settings, popUpBook.frontCoverCount + 1)`
+
 export default async function Page() {
   return (
     <ExportPage group={e.group} title={e.name} lede={e.lede}>
       <LivePopUpSpread />
+      <Notes>
+        <p>
+          <strong>Reading this first matters.</strong> <code>PopUpSpreadScene</code>&apos;s <code>left</code> and{' '}
+          <code>right</code> are bare <code>THREE.Group</code>s — there is no <code>.group</code> for{' '}
+          <Link href="/popupbook/pop-up-book/"><code>PopUpBook.setScene()</code></Link> to drive, and{' '}
+          <code>PopUpBook</code> positions a scene&apos;s elements against a single paper. So a spread scene does{' '}
+          <em>not</em> automatically follow the pages of a <code>PopUpBook</code>; you&apos;d add{' '}
+          <code>spread.left</code> / <code>spread.right</code> to your own scene graph and drive them yourself.
+        </p>
+        <p>
+          For pop-ups that follow a turning book across a facing pair — what the demo above does — register one{' '}
+          <Link href="/scenes/pop-up-scene/"><code>PopUpScene</code></Link> on each page:
+        </p>
+      </Notes>
+      <Source code={WITH_BOOK} lang="ts" />
       <Source code={CODE} lang="ts" />
       <PropTable
         label="CONSTRUCTOR — new PopUpSpreadScene(options)"

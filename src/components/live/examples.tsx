@@ -406,6 +406,7 @@ function popUpBuild(
   content: BookContent,
   textures: THREE.Texture[],
   setup: (popUpBook: PopUpBook) => void,
+  extraOpen = 0,
 ) {
   const book = new Book({ content, ...baseOptions({ alignToGround: false }) })
   let popUpBook: PopUpBook | null = null
@@ -421,7 +422,7 @@ function popUpBuild(
       }
       if (popUpBook) {
         if (!opened && book.isIdle) {
-          book.startAutoTurning(AutoTurnDirection.Next, settings, popUpBook.frontCoverCount)
+          book.startAutoTurning(AutoTurnDirection.Next, settings, popUpBook.frontCoverCount + extraOpen)
           opened = true
         }
         popUpBook.update(dt)
@@ -455,16 +456,19 @@ export function LivePopUpSpread() {
   useBookStage(ref, {
     make: (ctx) => {
       const { content, textures } = buildBookContent({ pageCount: 8, pageColor: PAGE_COLOR, coverColor: '#3a6ea5' })
+      // Open to a content↔content spread (one page past the covers) and put a
+      // PopUpScene on each of the two facing pages: the back side of the left
+      // paper (contentPageOffset+1) and the front side of the right (+2).
       return popUpBuild(ctx, content, textures, (popUpBook) => {
         const left = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
-        popUpBook.setScene(popUpBook.contentPageOffset, left)
+        popUpBook.setScene(popUpBook.contentPageOffset + 1, left)
         left.addPopUp({ object: makeShape('cube', SHAPE_PALETTE[0]), x: 0.6, z: 1.2 })
         left.addPopUp({ object: makeShape('star', SHAPE_PALETTE[3]), x: 1.4, z: 0.8, scale: 1.3 })
         const right = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
-        popUpBook.setScene(popUpBook.contentPageOffset + 1, right)
+        popUpBook.setScene(popUpBook.contentPageOffset + 2, right)
         right.addPopUp({ object: makeShape('cylinder', SHAPE_PALETTE[4]), x: 0.6, z: 1.4 })
         right.addPopUp({ object: makeShape('cone', SHAPE_PALETTE[1]), x: 1.4, z: 0.9, scale: 1.2 })
-      })
+      }, 1)
     },
   })
   return <LiveStage ref={ref} tall hint="Pop-ups on both facing pages of the open spread" />
