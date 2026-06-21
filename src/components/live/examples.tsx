@@ -374,14 +374,12 @@ type ShapeKind = 'cube' | 'cone' | 'sphere' | 'cylinder' | 'star'
 
 function makeShape(kind: ShapeKind, color: number): THREE.Object3D {
   let geo: THREE.BufferGeometry
-  // baseLift = distance from a centered geometry's origin down to its base.
-  let baseLift = 0
-  if (kind === 'cube') { geo = new THREE.BoxGeometry(0.35, 0.35, 0.35); baseLift = 0.175 }
-  else if (kind === 'cone') { geo = new THREE.ConeGeometry(0.22, 0.5, 24); baseLift = 0.25 }
-  else if (kind === 'sphere') { geo = new THREE.SphereGeometry(0.22, 24, 16); baseLift = 0.22 }
-  else if (kind === 'cylinder') { geo = new THREE.CylinderGeometry(0.18, 0.18, 0.45, 24); baseLift = 0.225 }
+  if (kind === 'cube') geo = new THREE.BoxGeometry(0.35, 0.35, 0.35)
+  else if (kind === 'cone') geo = new THREE.ConeGeometry(0.22, 0.5, 24)
+  else if (kind === 'sphere') geo = new THREE.SphereGeometry(0.22, 24, 16)
+  else if (kind === 'cylinder') geo = new THREE.CylinderGeometry(0.18, 0.18, 0.45, 24)
   else {
-    // simple extruded star — rotateX leaves its base at the origin already (baseLift 0)
+    // simple extruded star
     const shape = new THREE.Shape()
     const spikes = 5, outer = 0.26, inner = 0.12
     for (let i = 0; i < spikes * 2; i++) {
@@ -393,10 +391,7 @@ function makeShape(kind: ShapeKind, color: number): THREE.Object3D {
     geo = new THREE.ExtrudeGeometry(shape, { depth: 0.08, bevelEnabled: false })
     geo.rotateX(-Math.PI / 2)
   }
-  // Sit the geometry's base on the local origin. PopUpElement pops by scaling
-  // object.scale.y around that origin, so the shape grows straight up from the
-  // page (and collapses flush back onto it) instead of from its own centre.
-  if (baseLift) geo.translate(0, baseLift, 0)
+  // Hand the library any object — addPopUp plants it on the page by its base.
   const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color }))
   mesh.castShadow = true
   return mesh
