@@ -71,7 +71,19 @@ export function useBookStage(
     if (!container) return
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x14141f)
+    // A warm dusk sky — vertical gradient from deep indigo to a peach horizon.
+    const sky = (() => {
+      const c = document.createElement('canvas')
+      c.width = 8; c.height = 256
+      const g = c.getContext('2d')!.createLinearGradient(0, 0, 0, 256)
+      g.addColorStop(0, '#221a3a'); g.addColorStop(0.55, '#5b3f63'); g.addColorStop(0.82, '#c9706a'); g.addColorStop(1, '#f0a574')
+      const ctx2d = c.getContext('2d')!; ctx2d.fillStyle = g; ctx2d.fillRect(0, 0, 8, 256)
+      const tex = new THREE.CanvasTexture(c)
+      tex.colorSpace = THREE.SRGBColorSpace
+      return tex
+    })()
+    scene.background = sky
+    scene.fog = new THREE.Fog(0x6a4a5e, 9, 22)
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
     const camPos = options.camera?.position ?? [0, 3.7, 4.4]
@@ -80,6 +92,8 @@ export function useBookStage(
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.05
     renderer.domElement.style.display = 'block'
     renderer.domElement.style.width = '100%'
     renderer.domElement.style.height = '100%'
@@ -94,18 +108,26 @@ export function useBookStage(
     controls.maxDistance = 12
     controls.target.set(...(options.camera?.target ?? [0, 0, 0]))
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.75))
-    const sun = new THREE.DirectionalLight(0xffffff, 1.25)
-    sun.position.set(5, 9, 5)
+    // Dusk lighting: warm sky / cool ground bounce, a low golden key that casts
+    // long soft shadows, and a cool indigo rim to lift the shadow side.
+    scene.add(new THREE.HemisphereLight(0xffd9b0, 0x2b2440, 0.7))
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25))
+    const sun = new THREE.DirectionalLight(0xffd9a0, 2.1)
+    sun.position.set(5, 7, 4)
     sun.castShadow = true
-    sun.shadow.mapSize.set(1024, 1024)
+    sun.shadow.mapSize.set(2048, 2048)
     sun.shadow.camera.near = 1
     sun.shadow.camera.far = 40
+    sun.shadow.bias = -0.0004
+    sun.shadow.radius = 4
     scene.add(sun)
+    const rim = new THREE.DirectionalLight(0x6f7bd6, 0.6)
+    rim.position.set(-6, 4, -5)
+    scene.add(rim)
 
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(40, 40),
-      new THREE.MeshStandardMaterial({ color: 0x20202e }),
+      new THREE.PlaneGeometry(60, 60),
+      new THREE.MeshStandardMaterial({ color: 0x2a2336, roughness: 1 }),
     )
     ground.rotation.x = -Math.PI / 2
     ground.position.y = -0.02

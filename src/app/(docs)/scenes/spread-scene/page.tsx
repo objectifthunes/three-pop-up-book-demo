@@ -39,11 +39,11 @@ const off = popUpBook.contentPageOffset
 
 const leftPage = new PopUpScene({ pageWidth: 2, pageHeight: 3 })
 popUpBook.setScene(off + 1, leftPage)      // back side of the left paper
-leftPage.addPopUp({ object: makeShape('star'), x: 1.4, z: 0.8 })
+leftPage.addPopUp({ object: makeCottage(), x: 0.7, z: 1.0 })  // any THREE.Object3D
 
 const rightPage = new PopUpScene({ pageWidth: 2, pageHeight: 3 })
 popUpBook.setScene(off + 2, rightPage)     // front side of the right paper
-rightPage.addPopUp({ object: makeShape('cone'), x: 1.4, z: 0.9 })
+rightPage.addPopUp({ object: makeCastle(), x: 1.1, z: 1.2 })  // a whole group
 
 // Open to that content↔content spread (one page past the covers).
 book.startAutoTurning(0, settings, popUpBook.frontCoverCount + 1)`

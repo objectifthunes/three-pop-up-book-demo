@@ -18,7 +18,8 @@ import { PopUpBook, PopUpScene, PopUpSpreadScene } from '@objectifthunes/three-p
 import { useBookStage } from './useBookStage'
 import { LiveStage } from './LiveStage'
 import { LiveRow, LiveButton, LiveSlider, LiveToggle, LiveSwatch, LiveReadout } from './controls'
-import { buildBookContent, pagePaperSetup, coverPaperSetup, loadPatternImage } from './book-content'
+import { buildBookContent, pagePaperSetup, coverPaperSetup, loadPatternImage, type BuiltContent } from './book-content'
+import { makeCastle, makeCottage, makeDragon, makePine, makeFlower, makeMushroom, makeHill, makeForest, makeSignpost, parchmentDataUrl, coverArtDataUrl, loadImage } from './storybook'
 
 const PAGE_W = 2
 const PAGE_H = 3
@@ -367,34 +368,41 @@ export function LiveSpread() {
 }
 
 // ── Pop-up examples ─────────────────────────────────────────────────────────
+//
+// Each pop-up element is a composed THREE.Group (a castle, a dragon, a stand of
+// pines) from the storybook kit. addPopUp reads each group's bounding box and
+// plants its base on the page, so a whole diorama rises as the page settles.
 
-const SHAPE_PALETTE = [0xff5a5f, 0x4cc38a, 0x5b8def, 0xf2c14e, 0xa66cff, 0xff9f43]
+const STORYBOOK_COVER = '#5a3b8c'
 
-type ShapeKind = 'cube' | 'cone' | 'sphere' | 'cylinder' | 'star'
+// Storybook paper, generated once and cached. Giving every surface an image also
+// suppresses the library's auto labels (drawn only on surfaces with no image).
+let _parch: HTMLImageElement | null = null
+let _cover: HTMLImageElement | null = null
 
-function makeShape(kind: ShapeKind, color: number): THREE.Object3D {
-  let geo: THREE.BufferGeometry
-  if (kind === 'cube') geo = new THREE.BoxGeometry(0.35, 0.35, 0.35)
-  else if (kind === 'cone') geo = new THREE.ConeGeometry(0.22, 0.5, 24)
-  else if (kind === 'sphere') geo = new THREE.SphereGeometry(0.22, 24, 16)
-  else if (kind === 'cylinder') geo = new THREE.CylinderGeometry(0.18, 0.18, 0.45, 24)
-  else {
-    // simple extruded star
-    const shape = new THREE.Shape()
-    const spikes = 5, outer = 0.26, inner = 0.12
-    for (let i = 0; i < spikes * 2; i++) {
-      const r = i % 2 === 0 ? outer : inner
-      const a = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2
-      const x = Math.cos(a) * r, y = Math.sin(a) * r
-      if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y)
-    }
-    geo = new THREE.ExtrudeGeometry(shape, { depth: 0.08, bevelEnabled: false })
-    geo.rotateX(-Math.PI / 2)
-  }
-  // Hand the library any object — addPopUp plants it on the page by its base.
-  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color }))
-  mesh.castShadow = true
-  return mesh
+/** Load the parchment + cover art once, then rebuild so they draw. */
+function useStorybookArt(rebuild: () => void) {
+  useEffect(() => {
+    if (_parch && _cover) return
+    let alive = true
+    Promise.all([loadImage(parchmentDataUrl()), loadImage(coverArtDataUrl('A Pop-Up Tale', STORYBOOK_COVER))])
+      .then(([p, c]) => { if (alive) { _parch = p; _cover = c; rebuild() } })
+    return () => { alive = false }
+  }, [rebuild])
+}
+
+/** A BookContent dressed as a storybook: cover art + parchment endpapers/pages. */
+function buildStorybookContent(pageCount = 8): BuiltContent {
+  const textures: THREE.Texture[] = []
+  const track = (t: THREE.Texture) => { textures.push(t); return t }
+  const content = new BookContent()
+  content.direction = BookDirection.LeftToRight
+  const coverImgs = [_cover, _parch, _parch, _cover]
+  content.covers = coverImgs.map((img) => track(createPageTexture(STORYBOOK_COVER, '', img, 'cover', true, PAGE_W + 0.1, PAGE_H + 0.1)))
+  const pages: THREE.Texture[] = []
+  for (let i = 0; i < pageCount; i++) pages.push(track(createPageTexture(PAGE_COLOR, '', _parch, 'cover', true, PAGE_W, PAGE_H)))
+  content.pages = pages
+  return { content, textures }
 }
 
 /**
@@ -432,69 +440,90 @@ function popUpBuild(
   }
 }
 
-/** A book with 3D pop-ups that rise off the first content page. */
+/** A whole little kingdom that rises off the first content page. */
 export function LivePopUp() {
   const ref = useRef<HTMLDivElement>(null)
-  useBookStage(ref, {
+  const { rebuild } = useBookStage(ref, {
     make: (ctx) => {
-      const { content, textures } = buildBookContent({ pageCount: 8, pageColor: PAGE_COLOR, coverColor: '#3a6ea5' })
+      const { content, textures } = buildStorybookContent()
       return popUpBuild(ctx, content, textures, (popUpBook) => {
         const scene = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
         popUpBook.setScene(popUpBook.contentPageOffset, scene)
-        scene.addPopUp({ object: makeShape('cube', SHAPE_PALETTE[0]), x: 0.5, z: 1.0 })
-        scene.addPopUp({ object: makeShape('cone', SHAPE_PALETTE[1]), x: 1.3, z: 0.7, scale: 1.2 })
-        scene.addPopUp({ object: makeShape('sphere', SHAPE_PALETTE[2]), x: 0.9, z: 2.0 })
+        // A castle on its hill, ringed by pines, with a dragon wheeling past.
+        scene.addPopUp({ object: makeHill(0.62), x: 1.0, z: 1.15, scale: 1.1 })
+        scene.addPopUp({ object: makeCastle(), x: 1.0, z: 1.15, scale: 0.92 })
+        scene.addPopUp({ object: makePine(0.95), x: 0.35, z: 0.7 })
+        scene.addPopUp({ object: makePine(0.8), x: 1.66, z: 0.8 })
+        scene.addPopUp({ object: makePine(1.05), x: 0.45, z: 2.0 })
+        scene.addPopUp({ object: makeCottage(), x: 1.55, z: 1.95, scale: 0.9, rotation: -0.5 })
+        scene.addPopUp({ object: makeDragon(), x: 1.45, z: 1.5, scale: 0.7, rotation: -0.9 })
+        scene.addPopUp({ object: makeFlower(), x: 0.8, z: 2.5, scale: 0.9 })
+        scene.addPopUp({ object: makeMushroom(), x: 1.1, z: 2.55 })
       })
     },
   })
-  return <LiveStage ref={ref} tall hint="Shapes rise off the page as it settles — drag the page to fold them away" />
+  useStorybookArt(rebuild)
+  return <LiveStage ref={ref} tall hint="A whole diorama rises as the page settles — drag the page to fold the kingdom away" />
 }
 
-/** Pop-ups across a two-page spread via PopUpSpreadScene. */
+/** A storybook village spanning both facing pages of the open spread. */
 export function LivePopUpSpread() {
   const ref = useRef<HTMLDivElement>(null)
-  useBookStage(ref, {
+  const { rebuild } = useBookStage(ref, {
     make: (ctx) => {
-      const { content, textures } = buildBookContent({ pageCount: 8, pageColor: PAGE_COLOR, coverColor: '#3a6ea5' })
+      const { content, textures } = buildStorybookContent()
       // Open to a content↔content spread (one page past the covers) and put a
       // PopUpScene on each of the two facing pages: the back side of the left
       // paper (contentPageOffset+1) and the front side of the right (+2).
       return popUpBuild(ctx, content, textures, (popUpBook) => {
+        // Left page — the village.
         const left = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
         popUpBook.setScene(popUpBook.contentPageOffset + 1, left)
-        left.addPopUp({ object: makeShape('cube', SHAPE_PALETTE[0]), x: 0.6, z: 1.2 })
-        left.addPopUp({ object: makeShape('star', SHAPE_PALETTE[3]), x: 1.4, z: 0.8, scale: 1.3 })
+        left.addPopUp({ object: makeCottage(), x: 0.7, z: 1.0, rotation: 0.4 })
+        left.addPopUp({ object: makeCottage(0xd7bf8b), x: 1.4, z: 1.6, rotation: -0.3 })
+        left.addPopUp({ object: makePine(0.85), x: 1.6, z: 0.7 })
+        left.addPopUp({ object: makeSignpost(), x: 0.5, z: 2.1 })
+        left.addPopUp({ object: makeFlower(0xf2c14e), x: 1.0, z: 2.4, scale: 0.9 })
+
+        // Right page — the castle and its dragon, guarded by a forest.
         const right = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
         popUpBook.setScene(popUpBook.contentPageOffset + 2, right)
-        right.addPopUp({ object: makeShape('cylinder', SHAPE_PALETTE[4]), x: 0.6, z: 1.4 })
-        right.addPopUp({ object: makeShape('cone', SHAPE_PALETTE[1]), x: 1.4, z: 0.9, scale: 1.2 })
+        right.addPopUp({ object: makeHill(0.55), x: 1.1, z: 1.2, scale: 1.05 })
+        right.addPopUp({ object: makeCastle(), x: 1.1, z: 1.2, scale: 0.85 })
+        right.addPopUp({ object: makeForest(), x: 0.5, z: 2.0, scale: 0.9 })
+        right.addPopUp({ object: makeDragon(), x: 1.5, z: 2.0, scale: 0.75, rotation: -1.2 })
       }, 1)
     },
   })
-  return <LiveStage ref={ref} tall hint="Pop-ups on both facing pages of the open spread" />
+  useStorybookArt(rebuild)
+  return <LiveStage ref={ref} tall hint="A village on the left, the castle and its dragon on the right — pop-ups across the whole spread" />
 }
 
-/** A single pop-up with the spring animation toggle. */
+/** The hero dragon, with the spring animation toggle. */
 export function LiveAnimation() {
   const ref = useRef<HTMLDivElement>(null)
   const animated = useRef(true)
   const [, force] = useState(0)
   const { rebuild } = useBookStage(ref, {
     make: (ctx) => {
-      const { content, textures } = buildBookContent({ pageCount: 8, pageColor: PAGE_COLOR, coverColor: '#3a6ea5' })
+      const { content, textures } = buildStorybookContent()
       return popUpBuild(ctx, content, textures, (popUpBook) => {
         const scene = new PopUpScene({ pageWidth: PAGE_W, pageHeight: PAGE_H })
         popUpBook.setScene(popUpBook.contentPageOffset, scene)
-        const el = scene.addPopUp({ object: makeShape('cone', SHAPE_PALETTE[1]), x: 1.0, z: 1.5, scale: 1.4 })
+        scene.addPopUp({ object: makeHill(0.5), x: 1.0, z: 1.5, scale: 1.0 })
+        const el = scene.addPopUp({ object: makeDragon(), x: 1.0, z: 1.4, scale: 1.15 })
         el.animated = animated.current
+        scene.addPopUp({ object: makePine(0.8), x: 0.4, z: 1.0 })
+        scene.addPopUp({ object: makePine(0.7), x: 1.62, z: 1.1 })
       })
     },
   })
+  useStorybookArt(rebuild)
   return (
     <LiveStage
       ref={ref}
       tall
-      hint="element.animated toggles the spring bounce on pop / collapse"
+      hint="element.animated toggles the spring bounce on pop / collapse — watch the dragon rise"
       controls={
         <LiveToggle
           label="animated"
